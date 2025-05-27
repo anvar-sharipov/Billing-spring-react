@@ -1,0 +1,177 @@
+package com.WEAK.telekom.controllers;
+
+// Импорт модели, как в Django: from .models import Etrap
+import com.WEAK.telekom.models.Etrap;
+
+// Импорт репозитория, как в Django: используем менеджер модели для запросов к БД
+import com.WEAK.telekom.repositories.EtrapRepository;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
+
+// @RestController ≈ Django: @api_view + возвращение JsonResponse
+@RestController
+
+// @RequestMapping("/api/etraps") ≈ Django: URL path('api/etraps/', ...)
+@RequestMapping("/api/etraps")
+
+// @CrossOrigin(origins = "*") ≈ Django: настройка CORS (django-cors-headers)
+@CrossOrigin(origins = "*")
+public class EtrapController {
+
+    // @Autowired ≈ Django: etrapRepository = Etrap.objects (инъекция зависимости)
+    @Autowired
+    private EtrapRepository etrapRepository;
+
+    // GET /api/etraps/ ≈ Django: Etrap.objects.all()
+    @GetMapping
+    public List<Etrap> getAll() {
+        return etrapRepository.findAll();
+    }
+
+    // POST /api/etraps/ ≈ Django: Etrap.objects.create()
+    @PostMapping
+    public Etrap create(@RequestBody Etrap etrap) {
+        return etrapRepository.save(etrap);
+    }
+
+    // PUT /api/etraps/{id}/ ≈ Django:
+    // instance = get_object_or_404(Etrap, id=id)
+    // instance.etrap = updated_data['etrap']
+    // instance.save()
+    @PutMapping("/{id}")
+    public ResponseEntity<Etrap> update(@PathVariable Long id, @RequestBody Etrap updatedEtrap) {
+        return etrapRepository.findById(id)
+                .map(etrap -> {
+                    etrap.setEtrap(updatedEtrap.getEtrap());
+                    etrapRepository.save(etrap);
+                    return ResponseEntity.ok(etrap);
+                })
+                .orElse(ResponseEntity.notFound().build());
+    }
+
+    // DELETE /api/etraps/{id}/ ≈ Django:
+    // instance = get_object_or_404(Etrap, id=id)
+    // instance.delete()
+    @DeleteMapping("/{id}")
+    public ResponseEntity<Void> delete(@PathVariable Long id) {
+        if (etrapRepository.existsById(id)) {
+            etrapRepository.deleteById(id);
+            return ResponseEntity.noContent().build(); // HTTP 204 No Content
+        } else {
+            return ResponseEntity.notFound().build(); // HTTP 404 Not Found
+        }
+    }
+}
+
+
+
+
+
+
+import React, { useEffect, useState, useRef } from "react";
+
+const AdminEtraps = () => {
+  const [etraps, setEtraps] = useState([]);
+  const [newEtrap, setNewEtrap] = useState("");
+  const [editPk, setEditPk] = useState(null);
+  const [editName, setEditName] = useState("");
+
+  const editInputRef = useRef(null); // 🔹 Шаг 1
+
+  useEffect(() => {
+    fetch("http://localhost:8080/api/etraps")
+      .then((res) => res.json())
+      .then((res) => setEtraps(res))
+      .catch(console.error);
+  }, []);
+
+  useEffect(() => {
+    if (editPk !== null && editInputRef.current) {
+      editInputRef.current.focus();        // 🔹 Фокус
+      editInputRef.current.select();       // 🔹 Выделение текста
+    }
+  }, [editPk]);
+
+  const addNewEtrap = () => {
+    if (!newEtrap.trim()) return;
+    fetch("http://localhost:8080/api/etraps", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ etrap: newEtrap }),
+    })
+      .then((res) => res.json())
+      .then((added) => setEtraps((p) => [...p, added]))
+      .catch(console.error);
+    setNewEtrap("");
+  };
+
+  const deleteEtrap = (id) => {
+    fetch("http://localhost:8080/api/etraps/" + id, {
+      method: "DELETE",
+    }).then(() => setEtraps((p) => p.filter((e) => e.id !== id)));
+  };
+
+  const startEdit = (etrap) => {
+    setEditPk(etrap.id);
+    setEditName(etrap.etrap);
+  };
+
+  const saveEdit = (pk) => {
+    fetch('http://localhost:8080/api/etraps/' + pk, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ etrap: editName }),
+    })
+    .then(res => res.json())
+    .then(updated => {
+        setEtraps(etraps.map(e => e.id === pk ? updated : e));
+        setEditPk(null);
+        setEditName('');
+    })
+  }
+
+  return (
+    <div>
+      <label>
+        New etrap:
+        <input
+          type="text"
+          onChange={(e) => setNewEtrap(e.target.value)}
+          value={newEtrap}
+        />
+      </label>
+      <button onClick={addNewEtrap} disabled={!newEtrap.trim()}>Add</button>
+      <ul>
+        {etraps.map((etrap) => (
+          <li key={etrap.id}>
+            {editPk === etrap.id ? (
+              <>
+                <input
+                  type="text"
+                  ref={editInputRef} // 🔹 Привязка ссылки
+                  onChange={(e) => setEditName(e.target.value)}
+                  value={editName}
+                />
+                <button onClick={() => saveEdit(etrap.id)} >Save</button>
+                <button onClick={(e) =>  setEditPk(null)}>Cancel</button>
+              </>
+            ) : (
+              <>
+                {etrap.etrap}
+                <button onClick={() => startEdit(etrap)}>Edit</button>
+                <button onClick={() => deleteEtrap(etrap.id)}>Delete</button>
+              </>
+            )}
+          </li>
+        ))}
+      </ul>
+    </div>
+  );
+};
+
+export default AdminEtraps;
+

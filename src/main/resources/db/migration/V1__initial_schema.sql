@@ -1,0 +1,1 @@
+ALTER TABLE user_table ADD COLUMN balance NUMERIC(19,2);
