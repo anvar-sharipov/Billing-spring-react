@@ -27,7 +27,7 @@ API: REST
 Actively in development. Some features are still being migrated from the original Django project.
 
 📦 Installation and Run
-(Instructions will be added later once the project structure is complete.)
+Later after complate project
 
 📌 Note
 This project is being developed for educational purposes to learn Spring Boot and React.
@@ -60,7 +60,7 @@ RUS
 
 ## 📦 Установка и запуск
 
-(Добавишь позже инструкции, как запустить проект, когда будет готова структура)
+Добавлю позже
 
 ## 📌 Примечание
 
