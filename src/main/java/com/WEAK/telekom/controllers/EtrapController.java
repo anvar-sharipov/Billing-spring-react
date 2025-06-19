@@ -94,7 +94,7 @@ import java.util.List;
 //Убирают необходимость писать много шаблонного кода вручную
 
 @RestController
-@RequestMapping("/api/etraps")
+@RequestMapping("/api/models/etrap")
 @CrossOrigin(origins="*")
 public class EtrapController {
 

@@ -1,15 +1,14 @@
-import React, { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Link } from "react-router-dom";
-import { TbHomeFilled } from "react-icons/tb";
 
 function Header() {
-  const [dropdownOpen, setDropdownOpen] = useState(false);
+  const [dropdownOpen, setDropdownOpen] = useState<boolean>(false)
 
-  const dropdownRef = useRef(null);
+  const dropdownRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
-    function handleClickOutside(event) {
-      if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
+    function handleClickOutside(event: MouseEvent) {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
         setDropdownOpen(false);
       }
     }
@@ -66,11 +65,11 @@ function Header() {
           style={{ transformOrigin: "top" }}
         >
           <Link
-            to="/admin/etraps"
+            to="/admin/models"
             className="block px-5 py-3 hover:bg-indigo-600 hover:text-white rounded-lg transition-colors"
             onClick={() => setDropdownOpen(false)}
           >
-            Etraps
+            Models
           </Link>
           {/* Можно добавить другие пункты */}
         </div>
